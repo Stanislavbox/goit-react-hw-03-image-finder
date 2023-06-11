@@ -11,6 +11,7 @@ export const SearchBar = styled.header`
   justify-content: center;
   align-items: center;
   min-height: 64px;
+  margin-bottom: 12px;
   padding-right: 24px;
   padding-left: 24px;
   padding-top: 12px;
