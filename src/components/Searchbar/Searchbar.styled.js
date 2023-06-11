@@ -29,7 +29,7 @@ export const StyledForm = styled(Form)`
   background-color: #fff;
   border-radius: 3px;
   overflow: hidden;
-`
+`;
 export const SearchFormButton = styled.button`
   display: inline-block;
   width: 48px;
@@ -46,9 +46,9 @@ export const SearchFormButton = styled.button`
   &:hover {
     opacity: 1;
   }
-`
+`;
 export const SearchFormButtonLabel = styled.span`
-    position: absolute;
+  position: absolute;
   width: 1px;
   height: 1px;
   padding: 0;
@@ -57,7 +57,7 @@ export const SearchFormButtonLabel = styled.span`
   white-space: nowrap;
   clip-path: inset(50%);
   border: 0;
-`
+`;
 export const StyledField = styled(Field)`
   display: inline-block;
   width: 100%;
@@ -70,8 +70,8 @@ export const StyledField = styled(Field)`
   &::placeholder {
     font-size: inherit;
     font-size: 18px;
-}
-`
+  }
+`;
 
 export const SearchIcon = styled(AiOutlineSearch)`
   /* Добавьте стили для иконки */

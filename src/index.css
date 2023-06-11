@@ -37,3 +37,8 @@ img {
   grid-gap: 16px;
   padding-bottom: 24px;
 }
+.container{
+  width: 1440px;
+  margin: 0 auto;
+  padding: 0 12px;
+}
