@@ -4,7 +4,12 @@ import { ImageGallery } from './ImageGallery/ImageGallery';
 import { getImages } from './service/image-service';
 import { Loader } from './Loader/Loader';
 import { Modal } from './Modal/Modal';
-import { LoadMoreButton } from './Button/Button';
+import LoadMore from './Button/Button';
+import {
+  disableBodyScroll,
+  enableBodyScroll,
+  clearAllBodyScrollLocks,
+} from 'body-scroll-lock';
 
 export class App extends Component {
   state = {
@@ -21,14 +26,30 @@ export class App extends Component {
     isModalOpen: false,
   };
 
+  targetElement = document.querySelector('#root');
+
+  lockScroll() {
+    disableBodyScroll(this.targetElement);
+  }
+
+  unlockScroll() {
+    enableBodyScroll(this.targetElement);
+  }
+
   componentDidUpdate(prevProps, prevState) {
     const { query, page } = this.state;
 
-    if (prevState.query !== query || prevState.page !== page) {
+    if (prevState.query !== query) {
       this.setState({ images: [], page: 1, isEmpty: false }, () => {
-        this.handleSubmit(query, page);
+        this.handleSubmit(query, this.state.page);
       });
+    } else if (prevState.page !== page) {
+      this.handleSubmit(query, page);
     }
+  }
+
+  componentWillUnmount() {
+    clearAllBodyScrollLocks();
   }
 
   handleSubmit = async searchInput => {
@@ -39,30 +60,28 @@ export class App extends Component {
       return;
     }
 
-    this.setState({ query: searchInput, isLoading: true, error: null });
     try {
+      this.setState({ query: searchInput, isLoading: true, error: null });
       const result = await getImages(searchInput, page);
       const arrImages = result.data.hits;
       const { totalHits } = result.data;
-      const newState = {
-        isShowButton: page < Math.ceil(totalHits / per_page),
-        isLoading: false,
-      };
 
       if (page === 1) {
         if (!arrImages.length) {
-          this.setState({ isLoading: false });
+          this.setState({ isEmpty: true, isLoading: false });
           return;
         }
         this.setState({
           images: arrImages,
+          isShowButton: page < Math.ceil(totalHits / per_page),
+          isLoading: false,
           totalHits: totalHits,
-          ...newState,
         });
       } else {
         this.setState(prevState => ({
           images: [...prevState.images, ...arrImages],
-          ...newState,
+          isShowButton: page < Math.ceil(totalHits / per_page),
+          isLoading: false,
         }));
       }
     } catch (error) {
@@ -72,23 +91,22 @@ export class App extends Component {
 
   openModal = largeImageUrl => {
     this.setState({ largeImageUrl, isModalOpen: true });
+    this.lockScroll();
   };
 
   closeModal = () => {
     this.setState({ isModalOpen: false });
+    this.unlockScroll();
   };
 
-  handleClickBtn = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
+  handleClickButton = () => {
+    this.setState(prev => ({
+      page: prev.page + 1,
     }));
   };
 
   render() {
     const {
-      // query,
-      // page,
-      // per_page,
       totalHits,
       images,
       isLoading,
@@ -112,11 +130,7 @@ export class App extends Component {
         {isEmpty && <p>Sorry. There are no images ... 😭</p>}
         {isLoading && <Loader />}
         {error && <p>{error}</p>}
-        {isShowButton && (
-          <LoadMoreButton onClick={this.handleClickBtn}>
-            Load More...
-          </LoadMoreButton>
-        )}
+        {isShowButton && <LoadMore onClick={this.handleClickButton} />}
         {totalHits === images.length && <p>That's all, folks!</p>}
       </div>
     );
