@@ -26,14 +26,19 @@ export class App extends Component {
     isModalOpen: false,
   };
 
-  targetElement = document.querySelector('#root');
+  targetElement = null;
 
-  lockScroll() {
+  lockScroll = () => {
     disableBodyScroll(this.targetElement);
-  }
+  };
 
-  unlockScroll() {
+  unlockScroll = () => {
     enableBodyScroll(this.targetElement);
+  };
+
+  componentDidMount() {
+    this.targetElement = document.querySelector('#root');
+    clearAllBodyScrollLocks();
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -46,10 +51,6 @@ export class App extends Component {
     } else if (prevState.page !== page) {
       this.handleSubmit(query, page);
     }
-  }
-
-  componentWillUnmount() {
-    clearAllBodyScrollLocks();
   }
 
   handleSubmit = async searchInput => {
@@ -68,35 +69,32 @@ export class App extends Component {
 
       if (page === 1) {
         if (!arrImages.length) {
-          this.setState({ isEmpty: true, isLoading: false });
-          return;
+          this.setState({ isEmpty: true });
         }
         this.setState({
           images: arrImages,
           isShowButton: page < Math.ceil(totalHits / per_page),
-          isLoading: false,
           totalHits: totalHits,
         });
       } else {
         this.setState(prevState => ({
           images: [...prevState.images, ...arrImages],
           isShowButton: page < Math.ceil(totalHits / per_page),
-          isLoading: false,
         }));
       }
     } catch (error) {
       console.error('Error fetching images:', error);
+    } finally {
+      this.setState({ isLoading: false });
     }
   };
 
   openModal = largeImageUrl => {
-    this.setState({ largeImageUrl, isModalOpen: true });
-    this.lockScroll();
+    this.setState({ largeImageUrl, isModalOpen: true }, this.lockScroll());
   };
 
   closeModal = () => {
-    this.setState({ isModalOpen: false });
-    this.unlockScroll();
+    this.setState({ isModalOpen: false }, this.unlockScroll());
   };
 
   handleClickButton = () => {
@@ -127,11 +125,10 @@ export class App extends Component {
             <img src={largeImageUrl} alt="Ooops!" />
           </Modal>
         )}
-        {isEmpty && <p>Sorry. There are no images ... 😭</p>}
-        {isLoading && <Loader />}
+        {isEmpty && <p>No images</p>}
         {error && <p>{error}</p>}
         {isShowButton && <LoadMore onClick={this.handleClickButton} />}
-        {totalHits === images.length && <p>That's all, folks!</p>}
+        {totalHits === images.length && <p>These are all pictures</p>}
       </div>
     );
   }
